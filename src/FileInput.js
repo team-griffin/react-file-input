@@ -1,40 +1,67 @@
-import React, { PropTypes, Component, createElement, cloneElement } from 'react';
-import reduce from 'lodash.reduce';
+import React, {
+  createElement,
+  cloneElement,
+} from 'react';
+import PropTypes from 'prop-types';
+import {
+  setPropTypes,
+  setDisplayName,
+  compose,
+  defaultProps,
+  withHandlers,
+} from 'recompose';
+import Text from './Text';
+import Layout from './Layout';
 
-const renderText = ({ value }) => {
-  const fileNames = reduce(value, (result, file) => {
-    return [
-      ...result,
-      file.name,
-    ];
-  }, []).join(', ');
-
-  return (
-    <span>
-      {fileNames}
-    </span>
+export const FileInput = ({
+  multiple,
+  onChange,
+  onClick,
+  value,
+  button,
+  text,
+  layout,
+  ...rest
+}) => {
+  const input = (
+    <input
+      type="file"
+      onChange={onChange}
+      multiple={multiple}
+      hidden={true}
+      files={value}
+      value=""
+      {...rest}
+    />
   );
+
+  const buttonEl = cloneElement(button, {
+    multiple,
+    value,
+    onClick,
+  });
+
+  const textEl = cloneElement(text, {
+    multiple,
+    value,
+  });
+
+  const layoutEl = cloneElement(layout, {
+    input,
+    button: buttonEl,
+    text: textEl,
+    multiple,
+    value,
+  });
+
+  return layoutEl;
 };
 
-const renderLayout = (props) => {
-  return (
-    <div>
-      {props.input}
-      {props.button}
-      {props.text}
-    </div>
-  );
-};
-
-class FileInput extends Component {
-  static defaultProps = {
-    multiple: false,
-    text: createElement(renderText),
-    layout: createElement(renderLayout),
-  }
-
-  static PropTypes = {
+export const enhance = compose(
+  setDisplayName('FileInput'),
+  setPropTypes({
     // Input pass throughs
+    id: PropTypes.string.isRequired,
     value: PropTypes.array,
     multiple: PropTypes.bool,
     // Renderers
@@ -44,72 +71,19 @@ class FileInput extends Component {
 
     // Events
     onChange: PropTypes.func,
-  }
+  }),
+  defaultProps({
+    multiple: false,
+    text: createElement(Text),
+    layout: createElement(Layout),
+  }),
+  withHandlers({
+    onClick: ({
+      id,
+    }) => () => {
+      document.getElementById(id).click();
+    },
+  }),
+);
 
-  constructor(props) {
-    super(props);
-
-    // Refs
-    this.refInput = this.refInput.bind(this);
-    // Events
-    this.handleClick = this.handleClick.bind(this);
-  }
-
-  render() {
-    const {
-      multiple,
-      onChange,
-      value,
-      button,
-      text,
-      layout,
-      ...rest,
-    } = this.props;
-
-    const input = (
-      <input
-        ref={this.refInput}
-        type="file"
-        onChange={onChange}
-        multiple={multiple}
-        hidden={true}
-        files={value}
-        value={null}
-        {...rest}
-      />
-    );
-
-    const buttonEl = cloneElement(button, {
-      multiple,
-      value,
-      onClick: this.handleClick,
-    });
-
-    const textEl = cloneElement(text, {
-      multiple,
-      value,
-    });
-
-    const layoutEl = cloneElement(layout, {
-      input,
-      button: buttonEl,
-      text: textEl,
-      multiple,
-      value,
-    });
-
-    return layoutEl;
-  }
-
-  // Refs
-  refInput(input) {
-    this.input = input;
-  }
-
-  // Events
-  handleClick() {
-    this.input.click();
-  }
-}
-
-export default FileInput;
+export default enhance(FileInput);
