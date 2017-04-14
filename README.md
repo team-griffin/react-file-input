@@ -97,7 +97,7 @@ The layout component is an internal component. But these are the props we pass t
 | multiple | To support multiple values | Bool    |         |
 | input    | The input render           | Element |         |
 | button   | The button to render       | Element |         |
-| text     | The text to render         | Element | Text    |
+| text     | The text to render         | Element |         |
 
 ### Text
 
